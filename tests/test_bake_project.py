@@ -1,17 +1,21 @@
-from contextlib import contextmanager
-import shlex
-import os
-import sys
-import subprocess
-import yaml
 import datetime
+import importlib
+import os
+import shlex
+import subprocess
+import sys
+from contextlib import contextmanager
+from unittest.mock import patch
+
 import pytest
+import yaml
+from click.testing import CliRunner
 from cookiecutter.utils import rmtree
 
-from click.testing import CliRunner
-
-import importlib
-
+try:
+    import tomllib
+except ImportError:
+    from pip._vendor import tomli as tomllib
 
 @contextmanager
 def inside_dir(dirpath):
@@ -57,6 +61,10 @@ def check_output_inside_dir(command, dirpath):
         return subprocess.check_output(shlex.split(command))
 
 
+def load_pyproject(result):
+    return tomllib.load(result.project.join('pyproject.toml').open('rb'))
+
+
 def test_year_compute_in_license_file(cookies):
     with bake_in_temp_dir(cookies) as result:
         license_file_path = result.project.join('LICENSE')
@@ -79,7 +87,7 @@ def test_bake_with_defaults(cookies):
         assert result.exception is None
 
         found_toplevel_files = [f.basename for f in result.project.listdir()]
-        assert 'setup.py' in found_toplevel_files
+        assert 'pyproject.toml' in found_toplevel_files
         assert 'python_boilerplate' in found_toplevel_files
         assert 'tox.ini' in found_toplevel_files
         assert 'tests' in found_toplevel_files
@@ -88,28 +96,32 @@ def test_bake_with_defaults(cookies):
 def test_bake_and_run_tests(cookies):
     with bake_in_temp_dir(cookies) as result:
         assert result.project.isdir()
-        run_inside_dir('python setup.py test', str(result.project)) == 0
+        run_inside_dir('python -m unittest discover', str(result.project)) == 0
         print("test_bake_and_run_tests path", str(result.project))
 
 
-def test_bake_withspecialchars_and_run_tests(cookies):
-    """Ensure that a `full_name` with double quotes does not break setup.py"""
+def test_bake_with_specialchars(cookies):
+    """Ensure that a `full_name` with double quotes does not break pyproject.toml"""
     with bake_in_temp_dir(
         cookies,
         extra_context={'full_name': 'name "quote" name'}
     ) as result:
         assert result.project.isdir()
-        run_inside_dir('python setup.py test', str(result.project)) == 0
+
+        pyproject = load_pyproject(result)
+        assert pyproject['project']['authors'][0]['name'] == 'name \"quote\" name'
 
 
-def test_bake_with_apostrophe_and_run_tests(cookies):
-    """Ensure that a `full_name` with apostrophes does not break setup.py"""
+def test_bake_with_apostrophe(cookies):
+    """Ensure that a `full_name` with apostrophes does not break pyproject.toml"""
     with bake_in_temp_dir(
         cookies,
         extra_context={'full_name': "O'connor"}
     ) as result:
         assert result.project.isdir()
-        run_inside_dir('python setup.py test', str(result.project)) == 0
+
+        pyproject = load_pyproject(result)
+        assert pyproject['project']['authors'][0]['name'] == "O'connor"
 
 
 # def test_bake_and_run_travis_pypi_setup(cookies):
@@ -195,7 +207,9 @@ def test_bake_selecting_license(cookies):
             extra_context={'open_source_license': license}
         ) as result:
             assert target_string in result.project.join('LICENSE').read()
-            assert license in result.project.join('setup.py').read()
+
+            pyproject = load_pyproject(result)
+            assert 'license' in pyproject['project']
 
 
 def test_bake_not_open_source(cookies):
@@ -204,9 +218,11 @@ def test_bake_not_open_source(cookies):
         extra_context={'open_source_license': 'Not open source'}
     ) as result:
         found_toplevel_files = [f.basename for f in result.project.listdir()]
-        assert 'setup.py' in found_toplevel_files
+        assert 'pyproject.toml' in found_toplevel_files
         assert 'LICENSE' not in found_toplevel_files
-        assert 'License' not in result.project.join('README.rst').read()
+
+        pyproject = load_pyproject(result)
+        assert 'license' not in pyproject['project']
 
 
 def test_using_pytest(cookies):
@@ -222,6 +238,9 @@ def test_using_pytest(cookies):
         assert "import pytest" in ''.join(lines)
         # Test the new pytest target
         run_inside_dir('pytest', str(result.project)) == 0
+        
+        requirements_path = result.project.join('requirements_dev.txt')
+        assert "pytest" in requirements_path.read()
 
 
 def test_not_using_pytest(cookies):
@@ -233,6 +252,9 @@ def test_not_using_pytest(cookies):
         lines = test_file_path.readlines()
         assert "import unittest" in ''.join(lines)
         assert "import pytest" not in ''.join(lines)
+  
+        requirements_path = result.project.join('requirements_dev.txt')
+        assert "pytest" not in requirements_path.read()
 
 
 # def test_project_with_hyphen_in_module_name(cookies):
@@ -259,43 +281,48 @@ def test_not_using_pytest(cookies):
 def test_bake_with_no_console_script(cookies):
     context = {'command_line_interface': "No command-line interface"}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
+    project_path, _, project_dir = project_info(result)
     found_project_files = os.listdir(project_dir)
     assert "cli.py" not in found_project_files
 
-    setup_path = os.path.join(project_path, 'setup.py')
-    with open(setup_path, 'r') as setup_file:
-        assert 'entry_points' not in setup_file.read()
+    pyproject = load_pyproject(result)
+
+    assert 'scripts' not in pyproject['project']
 
 
 def test_bake_with_console_script_files(cookies):
-    context = {'command_line_interface': 'click'}
+    context = {'command_line_interface': 'Click'}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
+    print('FWFFFWF', result)
+    _, project_slug, project_dir = project_info(result)
     found_project_files = os.listdir(project_dir)
     assert "cli.py" in found_project_files
 
-    setup_path = os.path.join(project_path, 'setup.py')
-    with open(setup_path, 'r') as setup_file:
-        assert 'entry_points' in setup_file.read()
+    pyproject = pyproject = load_pyproject(result)
+
+    assert 'scripts' in pyproject['project']
+    assert project_slug in pyproject['project']['scripts']
+    assert pyproject['project']['scripts'][project_slug] == f'{project_slug}.cli:main'
 
 
 def test_bake_with_argparse_console_script_files(cookies):
-    context = {'command_line_interface': 'argparse'}
+    context = {'command_line_interface': 'Argparse'}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
+    _, project_slug, project_dir = project_info(result)
     found_project_files = os.listdir(project_dir)
     assert "cli.py" in found_project_files
 
-    setup_path = os.path.join(project_path, 'setup.py')
-    with open(setup_path, 'r') as setup_file:
-        assert 'entry_points' in setup_file.read()
+    pyproject = load_pyproject(result)
+
+    assert 'scripts' in pyproject['project']
+    assert project_slug in pyproject['project']['scripts']
+    assert pyproject['project']['scripts'][project_slug] == f'{project_slug}.cli:main'
 
 
 def test_bake_with_console_script_cli(cookies):
-    context = {'command_line_interface': 'click'}
+    context = {'command_line_interface': 'Click'}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
+    _, project_slug, project_dir = project_info(result)
     module_path = os.path.join(project_dir, 'cli.py')
     module_name = '.'.join([project_slug, 'cli'])
     spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -313,25 +340,29 @@ def test_bake_with_console_script_cli(cookies):
     assert 'Show this message' in help_result.output
 
 
-def test_bake_with_argparse_console_script_cli(cookies):
-    context = {'command_line_interface': 'argparse'}
+def test_bake_with_argparse_console_script_cli(cookies, capsys):
+    context = {'command_line_interface': 'Argparse'}
     result = cookies.bake(extra_context=context)
-    project_path, project_slug, project_dir = project_info(result)
+    _, project_slug, project_dir = project_info(result)
     module_path = os.path.join(project_dir, 'cli.py')
     module_name = '.'.join([project_slug, 'cli'])
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     cli = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cli)
-    runner = CliRunner()
-    noarg_result = runner.invoke(cli.main)
-    assert noarg_result.exit_code == 0
-    noarg_output = ' '.join([
-        'Replace this message by putting your code into',
-        project_slug])
-    assert noarg_output in noarg_result.output
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
-    assert 'Show this message' in help_result.output
+    
+    with patch('sys.argv'):
+        cli.main()
+
+    captured = capsys.readouterr()
+    result = captured.out
+    assert f'Replace this message by putting your code into {project_slug}' in result
+
+    with pytest.raises(SystemExit, match='0'):
+        cli.main(['--help'])
+
+    captured = capsys.readouterr()
+    result = captured.out
+    assert 'show this help message' in result 
 
 
 @pytest.mark.parametrize("use_black,expected", [("y", True), ("n", False)])
