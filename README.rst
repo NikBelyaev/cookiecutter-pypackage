@@ -7,7 +7,7 @@ Cookiecutter PyPackage
     :alt: Updates
 
 .. image:: https://github.com/NikBelyaev/cookiecutter-pypackage/workflows/CI/badge.svg?branch=main
-     :target: https://github.com/YOU/YOUR-PROJECT/actions?workflow=CI
+     :target: https://github.com/NikBelyaev/cookiecutter-pypackage/actions?workflow=CI
      :alt: CI Status
 
 .. image:: https://readthedocs.org/projects/cookiecutter-pypackage/badge/?version=latest
