@@ -7,7 +7,7 @@ on:
 
 jobs:
   tests:
-    name: "tox on ${{ matrix.os }}"
+    name: "tox on ${{ matrix.python-version }}"
     runs-on: ubuntu-latest
 
     strategy:
