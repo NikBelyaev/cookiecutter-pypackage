@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+{%- set license_classifiers = {
+    "MIT license": "License :: OSI Approved :: MIT License",
+    "BSD license": "License :: OSI Approved :: BSD License",
+    "ISC license": "License :: OSI Approved :: ISC License (ISCL)",
+    "Apache Software License 2.0": "License :: OSI Approved :: Apache Software License",
+    "GNU General Public License v3": "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
+} %}
+
+[project]
+name = "{{ cookiecutter.project_slug }}"
+description = "{{ cookiecutter.project_short_description }}"
+version = "{{ cookiecutter.version }}"
+readme = "README.md"
+requires-python = ">=3.8"
+{%- if cookiecutter.open_source_license in license_classifiers %}
+license = { file = "LICENSE" }
+{%- endif %}
+authors = [{ name = "{{ cookiecutter.full_name.replace('\"', '\\\"') }}", email = "{{ cookiecutter.email }}" },]
+classifiers=[
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+{%- if cookiecutter.open_source_license in license_classifiers %}
+    "{{ license_classifiers[cookiecutter.open_source_license] }}",
+{%- endif %}
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [{% if cookiecutter.command_line_interface|lower == 'click' %}"Click>=7.0",{% endif %}]
+dynamic = ["optional-dependencies"]
+
+[project.urls]
+repository = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
+changelog = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/master/HISTORY.rst"
+
+{% if cookiecutter.command_line_interface != "No command-line interface" %}
+[project.scripts]
+{{ cookiecutter.project_slug }} = "{{ cookiecutter.project_slug }}.cli:main"
+{% endif %}
+
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev = { file = ['requirements_dev.txt'] }
