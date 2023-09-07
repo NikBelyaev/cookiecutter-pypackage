@@ -6,9 +6,9 @@ Cookiecutter PyPackage
     :target: https://pyup.io/repos/github/audreyfeldroy/cookiecutter-pypackage/
     :alt: Updates
 
-.. image:: https://travis-ci.org/audreyfeldroy/cookiecutter-pypackage.svg?branch=master
-    :target: https://travis-ci.org/github/audreyfeldroy/cookiecutter-pypackage
-    :alt: Build Status
+.. image:: https://github.com/NikBelyaev/cookiecutter-pypackage/workflows/CI/badge.svg?branch=main
+     :target: https://github.com/YOU/YOUR-PROJECT/actions?workflow=CI
+     :alt: CI Status
 
 .. image:: https://readthedocs.org/projects/cookiecutter-pypackage/badge/?version=latest
     :target: https://cookiecutter-pypackage.readthedocs.io/en/latest/?badge=latest
