@@ -44,7 +44,7 @@ dev = { file = ['requirements_dev.txt'] }
 repository = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
 changelog = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/master/HISTORY.rst"
 
-{%- if cookiecutter.command_line_interface != "No command-line interface" %}
+{% if cookiecutter.command_line_interface != "No command-line interface" -%}
 [project.scripts]
 {{ cookiecutter.project_slug }} = "{{ cookiecutter.project_slug }}.cli:main"
 {%- endif %}
@@ -124,7 +124,7 @@ docstring-quotes = "double"
 inline-quotes = "single"
 multiline-quotes = "single"
 
-{%- if cookiecutter.use_black == "y" %}
+{% if cookiecutter.use_black == "y" -%}
 [tool.black]
 line-length = 120
 skip-string-normalization = true
