@@ -376,3 +376,6 @@ def test_black(cookies, use_black, expected):
         assert ("black" in requirements_path.read()) is expected
         makefile_path = result.project.join('Makefile')
         assert ("black --check" in makefile_path.read()) is expected
+
+        pyproject = load_pyproject(result)
+        assert ('black' in pyproject['tool']) is expected
