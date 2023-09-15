@@ -40,3 +40,8 @@ serialize = [
 ]
 search = "{current_version}"
 replace = "{new_version}"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
