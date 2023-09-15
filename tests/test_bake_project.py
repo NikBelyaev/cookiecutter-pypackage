@@ -240,8 +240,8 @@ def test_using_pytest(cookies):
         # Test the new pytest target
         run_inside_dir('pytest', str(result.project)) == 0
 
-        requirements_path = result.project.join('requirements_dev.txt')
-        assert "pytest" in requirements_path.read()
+        pyproject = load_pyproject(result)
+        assert any(dep.startswith('pytest==') for dep in pyproject['project']['optional-dependencies']['dev'])
 
 
 def test_not_using_pytest(cookies):
@@ -257,8 +257,8 @@ def test_not_using_pytest(cookies):
         assert "import unittest" in ''.join(lines)
         assert "import pytest" not in ''.join(lines)
 
-        requirements_path = result.project.join('requirements_dev.txt')
-        assert "pytest" not in requirements_path.read()
+        pyproject = load_pyproject(result)
+        assert not any(dep.startswith('pytest==') for dep in pyproject['project']['optional-dependencies']['dev'])
 
 
 # def test_project_with_hyphen_in_module_name(cookies):
@@ -373,7 +373,7 @@ def test_black(cookies, use_black, expected):
     """Test for validating the Black code formatter integration and configuration.
 
     Checks:
-    - Validates the presence of 'black' in the 'requirements_dev.txt' file based on the 'use_black' param.
+    - Validates the presence of 'black' in the 'pyproject.toml' file based on the 'use_black' param.
     - Verifies the presence of 'black' in the pyproject.toml based on the 'use_black' param.
     - Verifies the presence of 'black' in the '.pre-commit-config.yaml' file based on the 'use_black' value.
     """
@@ -383,10 +383,9 @@ def test_black(cookies, use_black, expected):
     ) as result:
         assert result.project.isdir()
 
-        requirements_path = result.project.join('requirements_dev.txt')
-        assert ('black' in requirements_path.read()) is expected
-
         pyproject = load_pyproject(result)
+        assert any(dep.startswith('black==')
+                   for dep in pyproject['project']['optional-dependencies']['dev']) is expected
         assert ('black' in pyproject['tool']) is expected
 
         pre_commit_config = result.project.join('.pre-commit-config.yaml')
@@ -398,7 +397,7 @@ def test_mypy(cookies, use_mypy, expected):
     """Test for validating the MyPy integration and configuration.
 
     Checks:
-    - Validates the presence of 'black' in the 'requirements_dev.txt' file based on the 'use_mypy' param.
+    - Validates the presence of 'black' in the 'pyproject.toml' file based on the 'use_mypy' param.
     - Verifies the presence of 'mypy' in the pyproject.toml based on the 'use_mypy' param.
     - Verifies the presence of 'mypy' in the '.pre-commit-config.yaml' file based on the 'use_mypy' value.
     """
@@ -408,10 +407,8 @@ def test_mypy(cookies, use_mypy, expected):
     ) as result:
         assert result.project.isdir()
 
-        requirements_path = result.project.join('requirements_dev.txt')
-        assert ('mypy' in requirements_path.read()) is expected
-
         pyproject = load_pyproject(result)
+        assert any(dep.startswith('mypy==') for dep in pyproject['project']['optional-dependencies']['dev']) is expected
         assert ('mypy' in pyproject['tool']) is expected
 
         pre_commit_config = yaml.safe_load(result.project.join('.pre-commit-config.yaml').read())
