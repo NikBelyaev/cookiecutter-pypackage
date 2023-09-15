@@ -24,3 +24,8 @@ classifiers = [
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development',
 ]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
