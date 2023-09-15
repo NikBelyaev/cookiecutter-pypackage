@@ -13,3 +13,5 @@ Click==7.1.2{% endif %}
 pytest==7.4.1{% endif %}
 {% if cookiecutter.use_black == 'y' -%}
 black==23.7.0{% endif %}
+{% if cookiecutter.use_mypy == 'y' -%}
+mypy==1.5.1{% endif %}
