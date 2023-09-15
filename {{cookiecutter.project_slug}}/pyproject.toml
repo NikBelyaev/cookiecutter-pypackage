@@ -34,11 +34,28 @@ classifiers=[
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = [{% if cookiecutter.command_line_interface|lower == 'click' %}"Click>=7.0",{% endif %}]
-dynamic = ["optional-dependencies"]
+dependencies = [{% if cookiecutter.command_line_interface|lower == 'click' %}"click==8.1.7",{% endif %}]
 
-[tool.setuptools.dynamic.optional-dependencies]
-dev = { file = ['requirements_dev.txt'] }
+[project.optional-dependencies]
+dev = [
+    "bump-my-version==0.10.0",
+    "wheel==0.33.6",
+    "watchdog==0.9.0",
+    "ruff==0.0.287",
+    "tox==3.14.1",
+    "coverage==4.5.4",
+    "Sphinx==1.8.5",
+    "twine==1.14.0",
+    "pre-commit==3.4.0",
+    {% if cookiecutter.command_line_interface|lower == 'click' -%}
+    "click==8.1.7",{% endif %}
+    {% if cookiecutter.use_pytest -%}
+    "pytest==7.4.1",{% endif %}
+    {% if cookiecutter.use_black -%}
+    "black==23.7.0",{% endif %}
+    {% if cookiecutter.use_mypy -%}
+    "mypy==1.5.1",{% endif %}
+]
 
 [project.urls]
 repository = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
