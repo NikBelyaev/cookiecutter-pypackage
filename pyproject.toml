@@ -1,8 +1,6 @@
 [project]
 name = "cookiecutter-pypackage"
 description = 'Cookiecutter template for a Python package'
-version = "0.1.1"
-readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 authors = [{ name = "Nikita Belyaev", email = "belyaev.nikit@gmail.com" }]
@@ -24,3 +22,21 @@ classifiers = [
     'Programming Language :: Python :: Implementation :: PyPy',
     'Topic :: Software Development',
 ]
+dynamic = ["version", "readme"]
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION" }
+readme = { file = ["README.rst"] }
+
+[tool.bumpversion]
+message = ":bookmark: Bump version: {current_version} → {new_version}"
+tag = true
+sign_tags = true
+tag_message = ":bookmark: Bump version: {current_version} → {new_version}"
+current_version = "0.1.1"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = [
+    "{major}.{minor}.{patch}"
+]
+search = "{current_version}"
+replace = "{new_version}"
