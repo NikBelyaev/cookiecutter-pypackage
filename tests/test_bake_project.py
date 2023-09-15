@@ -148,7 +148,7 @@ def test_bake_with_apostrophe(cookies):
 def test_bake_without_travis_pypi_setup(cookies):
     with bake_in_temp_dir(
         cookies,
-        extra_context={'use_pypi_deployment_with_travis': 'n'}
+        extra_context={'use_pypi_deployment_with_travis': False}
     ) as result:
         result_travis_config = yaml.load(
             result.project.join(".travis.yml").open(),
@@ -162,7 +162,7 @@ def test_bake_without_travis_pypi_setup(cookies):
 def test_bake_without_author_file(cookies):
     with bake_in_temp_dir(
         cookies,
-        extra_context={'create_author_file': 'n'}
+        extra_context={'create_author_file': False}
     ) as result:
         found_toplevel_files = [f.basename for f in result.project.listdir()]
         assert 'AUTHORS.rst' not in found_toplevel_files
@@ -228,7 +228,7 @@ def test_bake_not_open_source(cookies):
 def test_using_pytest(cookies):
     with bake_in_temp_dir(
         cookies,
-        extra_context={'use_pytest': 'y'}
+        extra_context={'use_pytest': True}
     ) as result:
         assert result.project.isdir()
 
@@ -247,7 +247,7 @@ def test_using_pytest(cookies):
 def test_not_using_pytest(cookies):
     with bake_in_temp_dir(
         cookies,
-        extra_context={'use_pytest': 'n'}
+        extra_context={'use_pytest': False}
     ) as result:
         assert result.project.isdir()
         test_file_path = result.project.join(
@@ -368,7 +368,7 @@ def test_bake_with_argparse_console_script_cli(cookies, capsys):
     assert 'show this help message' in result
 
 
-@pytest.mark.parametrize('use_black, expected', [('y', True), ('n', False)])
+@pytest.mark.parametrize('use_black, expected', [(True, True), (False, False)])
 def test_black(cookies, use_black, expected):
     """Test for validating the Black code formatter integration and configuration.
 
@@ -393,7 +393,7 @@ def test_black(cookies, use_black, expected):
         assert ('id: black' in pre_commit_config.read()) is expected
 
 
-@pytest.mark.parametrize('use_mypy, expected', [('y', True), ('n', False)])
+@pytest.mark.parametrize('use_mypy, expected', [(True, True), (False, False)])
 def test_mypy(cookies, use_mypy, expected):
     """Test for validating the MyPy integration and configuration.
 
@@ -426,7 +426,7 @@ def test_click_is_optionally_added_as_mypy_dependency(cookies, command_line_inte
     """Test for validating the 'click' dependency is added to MyPy if both of them are chosen."""
     with bake_in_temp_dir(
         cookies,
-        extra_context={'command_line_interface': command_line_interface, 'use_mypy': 'y'}
+        extra_context={'command_line_interface': command_line_interface, 'use_mypy': True}
     ) as result:
         pre_commit_config = yaml.safe_load(result.project.join('.pre-commit-config.yaml').read())
         additional_dependencies = None

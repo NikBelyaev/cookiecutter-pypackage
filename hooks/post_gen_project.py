@@ -10,7 +10,7 @@ def remove_file(filepath):
 
 if __name__ == '__main__':
 
-    if '{{ cookiecutter.create_author_file }}' != 'y':
+    if '{{ cookiecutter.create_author_file }}' is not True:
         remove_file('AUTHORS.rst')
         remove_file('docs/authors.rst')
 

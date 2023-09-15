@@ -124,14 +124,14 @@ docstring-quotes = "double"
 inline-quotes = "single"
 multiline-quotes = "single"
 
-{% if cookiecutter.use_black == "y" -%}
+{% if cookiecutter.use_black -%}
 [tool.black]
 line-length = 120
 skip-string-normalization = true
 target-version = ['py38', 'py39', 'py310', 'py311']
 {%- endif %}
 
-{% if cookiecutter.use_mypy == "y" -%}
+{% if cookiecutter.use_mypy -%}
 [tool.mypy]
 strict = true
 {%- endif %}
