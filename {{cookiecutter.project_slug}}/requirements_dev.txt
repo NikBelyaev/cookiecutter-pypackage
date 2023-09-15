@@ -9,9 +9,9 @@ twine==1.14.0
 pre-commit==3.4.0
 {% if cookiecutter.command_line_interface|lower == 'click' -%}
 Click==7.1.2{% endif %}
-{% if cookiecutter.use_pytest == 'y' -%}
+{% if cookiecutter.use_pytest -%}
 pytest==7.4.1{% endif %}
-{% if cookiecutter.use_black == 'y' -%}
+{% if cookiecutter.use_black -%}
 black==23.7.0{% endif %}
-{% if cookiecutter.use_mypy == 'y' -%}
+{% if cookiecutter.use_mypy -%}
 mypy==1.5.1{% endif %}

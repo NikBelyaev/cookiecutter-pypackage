@@ -1,4 +1,4 @@
-{% if cookiecutter.create_author_file == 'y' -%}
+{% if cookiecutter.create_author_file -%}
 include AUTHORS.rst
 {% endif -%}
 include CONTRIBUTING.rst

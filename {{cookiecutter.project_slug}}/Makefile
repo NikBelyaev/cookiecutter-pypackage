@@ -1,5 +1,4 @@
-.PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint lint/flake8
-        {%- if cookiecutter.use_black == 'y' %} lint/black{% endif %}
+.PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -52,7 +51,7 @@ lint:
 	tox run -e lint
 
 test: ## run tests quickly with the default Python
-{%- if cookiecutter.use_pytest == 'y' %}
+{%- if cookiecutter.use_pytest %}
 	pytest
 {%- else %}
 	python setup.py test
@@ -62,7 +61,7 @@ test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
-{%- if cookiecutter.use_pytest == 'y' %}
+{%- if cookiecutter.use_pytest %}
 	coverage run --source {{ cookiecutter.project_slug }} -m pytest
 {%- else %}
 	coverage run --source {{ cookiecutter.project_slug }} setup.py test
