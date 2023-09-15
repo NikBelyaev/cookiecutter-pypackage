@@ -17,6 +17,7 @@ try:
 except ImportError:
     from pip._vendor import tomli as tomllib
 
+
 @contextmanager
 def inside_dir(dirpath):
     """
@@ -187,8 +188,7 @@ def test_make_help(cookies):
                 'make help',
                 str(result.project)
             )
-            assert b"check code coverage quickly with the default Python" in \
-                output
+            assert b"check code coverage quickly with the default Python" in output
 
 
 def test_bake_selecting_license(cookies):
@@ -231,20 +231,24 @@ def test_using_pytest(cookies):
         extra_context={'use_pytest': 'y'}
     ) as result:
         assert result.project.isdir()
+
         test_file_path = result.project.join(
             'tests/test_python_boilerplate.py'
         )
-        lines = test_file_path.readlines()
-        assert "import pytest" in ''.join(lines)
+        text = test_file_path.read()
+        assert "import pytest" in text
         # Test the new pytest target
         run_inside_dir('pytest', str(result.project)) == 0
-        
+
         requirements_path = result.project.join('requirements_dev.txt')
         assert "pytest" in requirements_path.read()
 
 
 def test_not_using_pytest(cookies):
-    with bake_in_temp_dir(cookies) as result:
+    with bake_in_temp_dir(
+        cookies,
+        extra_context={'use_pytest': 'n'}
+    ) as result:
         assert result.project.isdir()
         test_file_path = result.project.join(
             'tests/test_python_boilerplate.py'
@@ -252,7 +256,7 @@ def test_not_using_pytest(cookies):
         lines = test_file_path.readlines()
         assert "import unittest" in ''.join(lines)
         assert "import pytest" not in ''.join(lines)
-  
+
         requirements_path = result.project.join('requirements_dev.txt')
         assert "pytest" not in requirements_path.read()
 
@@ -293,12 +297,11 @@ def test_bake_with_no_console_script(cookies):
 def test_bake_with_console_script_files(cookies):
     context = {'command_line_interface': 'Click'}
     result = cookies.bake(extra_context=context)
-    print('FWFFFWF', result)
     _, project_slug, project_dir = project_info(result)
     found_project_files = os.listdir(project_dir)
     assert "cli.py" in found_project_files
 
-    pyproject = pyproject = load_pyproject(result)
+    pyproject = load_pyproject(result)
 
     assert 'scripts' in pyproject['project']
     assert project_slug in pyproject['project']['scripts']
@@ -349,7 +352,7 @@ def test_bake_with_argparse_console_script_cli(cookies, capsys):
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     cli = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(cli)
-    
+
     with patch('sys.argv'):
         cli.main()
 
@@ -362,20 +365,33 @@ def test_bake_with_argparse_console_script_cli(cookies, capsys):
 
     captured = capsys.readouterr()
     result = captured.out
-    assert 'show this help message' in result 
+    assert 'show this help message' in result
 
 
-@pytest.mark.parametrize("use_black,expected", [("y", True), ("n", False)])
+@pytest.mark.parametrize('use_black, expected', [('y', True), ('n', False)])
 def test_black(cookies, use_black, expected):
+    """Test for validating the Black code formatter integration and configuration.
+
+    Checks:
+    - Validates the presence of 'black' in the 'requirements_dev.txt' file based on the 'use_black' param.
+    - Verifies the presence of 'black' in the 'Makefile' based on the 'use_black' param.
+    - Verifies the presence of 'black' in the pyproject.toml based on the 'use_black' param.
+    - Verifies the presence of 'black' in the '.pre-commit-config.yaml' file based on the 'use_black' value.
+    """
     with bake_in_temp_dir(
         cookies,
         extra_context={'use_black': use_black}
     ) as result:
         assert result.project.isdir()
+
         requirements_path = result.project.join('requirements_dev.txt')
-        assert ("black" in requirements_path.read()) is expected
+        assert ('black' in requirements_path.read()) is expected
+
         makefile_path = result.project.join('Makefile')
-        assert ("black --check" in makefile_path.read()) is expected
+        assert ('black --check' in makefile_path.read()) is expected
 
         pyproject = load_pyproject(result)
         assert ('black' in pyproject['tool']) is expected
+
+        pre_commit_config = result.project.join('.pre-commit-config.yaml')
+        assert ('id: black' in pre_commit_config.read()) is expected
