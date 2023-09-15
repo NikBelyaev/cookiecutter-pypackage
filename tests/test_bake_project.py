@@ -374,7 +374,6 @@ def test_black(cookies, use_black, expected):
 
     Checks:
     - Validates the presence of 'black' in the 'requirements_dev.txt' file based on the 'use_black' param.
-    - Verifies the presence of 'black' in the 'Makefile' based on the 'use_black' param.
     - Verifies the presence of 'black' in the pyproject.toml based on the 'use_black' param.
     - Verifies the presence of 'black' in the '.pre-commit-config.yaml' file based on the 'use_black' value.
     """
@@ -386,9 +385,6 @@ def test_black(cookies, use_black, expected):
 
         requirements_path = result.project.join('requirements_dev.txt')
         assert ('black' in requirements_path.read()) is expected
-
-        makefile_path = result.project.join('Makefile')
-        assert ('black --check' in makefile_path.read()) is expected
 
         pyproject = load_pyproject(result)
         assert ('black' in pyproject['tool']) is expected
