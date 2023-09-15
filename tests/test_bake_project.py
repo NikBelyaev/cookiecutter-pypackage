@@ -395,3 +395,49 @@ def test_black(cookies, use_black, expected):
 
         pre_commit_config = result.project.join('.pre-commit-config.yaml')
         assert ('id: black' in pre_commit_config.read()) is expected
+
+
+@pytest.mark.parametrize('use_mypy, expected', [('y', True), ('n', False)])
+def test_mypy(cookies, use_mypy, expected):
+    """Test for validating the MyPy integration and configuration.
+
+    Checks:
+    - Validates the presence of 'black' in the 'requirements_dev.txt' file based on the 'use_mypy' param.
+    - Verifies the presence of 'mypy' in the pyproject.toml based on the 'use_mypy' param.
+    - Verifies the presence of 'mypy' in the '.pre-commit-config.yaml' file based on the 'use_mypy' value.
+    """
+    with bake_in_temp_dir(
+        cookies,
+        extra_context={'use_mypy': use_mypy}
+    ) as result:
+        assert result.project.isdir()
+
+        requirements_path = result.project.join('requirements_dev.txt')
+        assert ('mypy' in requirements_path.read()) is expected
+
+        pyproject = load_pyproject(result)
+        assert ('mypy' in pyproject['tool']) is expected
+
+        pre_commit_config = yaml.safe_load(result.project.join('.pre-commit-config.yaml').read())
+        repo_names = [repo['repo'] for repo in pre_commit_config['repos']]
+        assert ('https://github.com/pre-commit/mirrors-mypy' in repo_names) is expected
+
+
+@pytest.mark.parametrize('command_line_interface, expected', [
+    ('Click', True), ('Argparse', False), ('No command-line interface', False)
+])
+def test_click_is_optionally_added_as_mypy_dependency(cookies, command_line_interface, expected):
+    """Test for validating the 'click' dependency is added to MyPy if both of them are chosen."""
+    with bake_in_temp_dir(
+        cookies,
+        extra_context={'command_line_interface': command_line_interface, 'use_mypy': 'y'}
+    ) as result:
+        pre_commit_config = yaml.safe_load(result.project.join('.pre-commit-config.yaml').read())
+        additional_dependencies = None
+
+        for repo in pre_commit_config['repos']:
+            if repo['repo'] == 'https://github.com/pre-commit/mirrors-mypy':
+                additional_dependencies = repo['hooks'][0]['additional_dependencies']
+
+        assert additional_dependencies is not None, 'Could not find mypy hook'
+        assert ('click' in additional_dependencies) is expected

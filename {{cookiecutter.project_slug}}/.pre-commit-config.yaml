@@ -40,6 +40,19 @@ repos:
       - id: black
   {%- endif %}
 
+  {% if cookiecutter.use_mypy == "y" -%}
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - "pytest"
+          {% if cookiecutter.command_line_interface == "Click" -%}
+          - "click"
+          {%- endif %}
+        args: [ --install-types, --non-interactive]
+  {%- endif %}
+
 ci:
   autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
   autoupdate_commit_msg: ⬆ [pre-commit.ci] pre-commit autoupdate
